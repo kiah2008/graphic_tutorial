@@ -42,7 +42,7 @@ static int matchConfigToVisual(EGLDisplay display, EGLint visualId, EGLConfig *c
     for (int i = 0; i < count; ++i)
     {
         if (!eglGetConfigAttrib(display, configs[i], EGL_NATIVE_VISUAL_ID, &id)) {
-            fprintf(stderr, "fail to query visual id  %d\n" + i);
+            fprintf(stderr, "fail to query visual id  %d\n", i);
             continue;
         }
         printf("visual id %d, while expect %d\n", visualId, id);
@@ -52,7 +52,7 @@ static int matchConfigToVisual(EGLDisplay display, EGLint visualId, EGLConfig *c
     return -1;
 }
 
-void initialize_egl(Display *x11_display, Window window, EGLDisplay *egl_display, EGLContext *egl_context, EGLSurface *egl_surface)
+void initialize_egl(Display *x11_display, Window x11_window, EGLDisplay *egl_display, EGLContext *egl_context, EGLSurface *egl_surface)
 {
     // get an EGL display connection
     EGLDisplay display = eglGetDisplay(x11_display);
@@ -89,7 +89,7 @@ void initialize_egl(Display *x11_display, Window window, EGLDisplay *egl_display
         fprintf(stderr, "Failed to get EGL configs! Error: %s\n",
                 egl_get_error_str());
         eglTerminate(display);
-        return EXIT_FAILURE;
+        return;
     }
 
     // int configIndex = matchConfigToVisual(display, GBM_FORMAT_XRGB8888, configs, numConfigs);
@@ -113,10 +113,10 @@ void initialize_egl(Display *x11_display, Window window, EGLDisplay *egl_display
         fprintf(stderr, "Failed to create EGL context! Error: %s\n",
                 egl_get_error_str());
         eglTerminate(display);
-        return EXIT_FAILURE;
+        return;
     }
     // create an EGL window surface
-    EGLSurface surface = eglCreateWindowSurface(display, configs[configIndex], window, NULL);
+    EGLSurface surface = eglCreateWindowSurface(display, configs[configIndex], x11_window, NULL);
 
     // connect the context to the surface
     eglMakeCurrent(display, surface, surface, context);

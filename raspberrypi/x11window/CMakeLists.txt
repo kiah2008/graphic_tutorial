@@ -1,7 +1,6 @@
 project(x11window VERSION 0.1.0)
 
 find_package(PkgConfig REQUIRED)
-message(STATUS "=== PKG_CONFIG_FOUND: ${PKG_CONFIG_FOUND}")
 
 pkg_check_modules(EGL REQUIRED egl)
 pkg_check_modules(GLES REQUIRED glesv2)
@@ -14,7 +13,6 @@ target_include_directories(${PROJECT_NAME}
     "${EGL_INCLUDE_DIR}"
     "${GLES_INCLUDE_DIR}"
     "${X11_INCLUDE_DIR}"
-    "${UTILS_INC}"
 )
 
 message(STATUS "==== gles ${GLES_INCLUDE_DIR}.")

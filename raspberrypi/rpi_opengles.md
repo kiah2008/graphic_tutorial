@@ -70,6 +70,15 @@ freetype2.pc  gl.pc         libbrotlidec.pc         libdrm_freedreno.pc  libdrm_
 gbm.pc        glx.pc        libbrotlienc.pc         libdrm_nouveau.pc    libglvnd.pc       libxcrypt.pc  python-3.9-embed.pc  x11.pc
 ```
 
+```
+ dpkg-query -l libdrm-dev
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name             Version      Architecture Description
++++-================-============-============-================================>
+ii  libdrm-dev:arm64 2.4.104-1    arm64        Userspace interface to kernel DR>
+```
 
 # Opencv
 
@@ -153,3 +162,85 @@ sudo apt-get update
 echo "Congratulations!"
 echo "You've successfully installed OpenCV 4.5.5 on your Raspberry Pi 64-bit OS"
 ```
+
+
+# cross compile with sysroot
+introduce how to cross compiling rpi4 binary in unix-like host.
+
+## install your gcc and g++ for aarch64
+
+```
+sudo apt-get install build-essential gdb
+sudo apt-get install gcc-aarch64-linux-gnu
+sudo apt install g++-9-aarch64-linux-gnu
+```
+
+## using sshfs to remount rpi's root to local path
+refer to [using sshfs](https://github.com/kiah2008/kiah2008/blob/main/2022/tools/mount%20remote%20linux%20directory%20to%20local%20fs%20using%20sshfs.md).
+recommend to using ssh's key to avoid input user info.
+
+```
+pi@192.168.2.107:/ on /home/kiah/rpi_root type fuse.sshfs (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
+```
+## add toochain cmake file for your cmake project
+
+```
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
+set(CMAKE_CROSSCOMPILING TRUE)
+
+
+#using sshfs to mount remote rpi:/usr/ to local rpi_usr
+
+#set(RPI_ROOT "/home/kiah/rpi_root")
+
+set(CMAKE_SYSROOT ${RPI_ROOT})
+#set(CMAKE_PREFIX_PATH ${RPI_ROOT})
+
+include_directories(${RPI_ROOT}/usr/include/libdrm)
+# Name of C compiler.
+set(CMAKE_C_COMPILER "/usr/bin/aarch64-linux-gnu-gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/aarch64-linux-gnu-g++-9")
+
+# Where to look for the target environment. (More paths can be added here)
+set(CMAKE_FIND_ROOT_PATH "${RPI_ROOT}/usr/aarch64-linux-gnu")
+#set(CMAKE_SYSROOT /usr/aarch64-linux-gnu)
+set(CMAKE_INCLUDE_PATH  ${RPI_ROOT}/usr/include/aarch64-linux-gnu)
+set(CMAKE_LIBRARY_PATH  ${RPI_ROOT}/usr/lib/aarch64-linux-gnu)
+set(CMAKE_PROGRAM_PATH  ${RPI_ROOT}/usr/bin/aarch64-linux-gnu)
+
+# Adjust the default behavior of the FIND_XXX() commands:
+# search programs in the host environment only.
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+
+# for libraries and headers in the target directories
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+# automatically use the cross-wrapper for pkg-config
+SET(ENV{PKG_CONFIG_PATH} "${RPI_ROOT}/usr/share/pkgconfig/:${RPI_ROOT}/usr/lib/pkgconfig/:${RPI_ROOT}/usr/lib/aarch64-linux-gnu/pkgconfig/")
+#SET(ENV{PKG_CONFIG_LIBDIR } ${RPI_ROOT}/lib/aarch64-linux-gnu/pkgconfig/)
+
+message(STATUS "=== PKG_CONFIG_PATH: " $ENV{PKG_CONFIG_PATH})
+set(PKG_CONFIG_EXECUTABLE "/usr/bin/pkg-config" CACHE FILEPATH "pkg-config executable")
+```
+
+## add toolchain file in vs code's settings.json
+```
+{
+    "cmake.additionalKits": [
+        "gnu-gcc"
+    ],
+    "cmake.configureArgs": [
+        "-DCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/makefiles/cmake/aarch64_build.cmake",
+        "-DRPI_SYSROOT=/home/kiah/rpi_root"
+    ],
+    "C_Cpp.default.cppStandard": "c++14",
+    "C_Cpp.default.cStandard": "c11",
+    "cmake.configureOnOpen": true,
+    "C_Cpp.errorSquiggles": "Disabled"
+}
+```
+
+# using cmake to build
