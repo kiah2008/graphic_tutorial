@@ -1,3 +1,19 @@
+# pre-requirement
+base on **raspberrypi 4b with bullseye**
+```
+$ lsb_release -a
+No LSB modules are available.
+Distributor ID: Debian
+Description:    Debian GNU/Linux 11 (bullseye)
+Release:        11
+Codename:       bullseye
+```
+
+Arm arch **aarch64 **
+```
+uname -a
+Linux wethink 5.15.30-v8+ #1536 SMP PREEMPT Mon Mar 28 13:53:14 BST 2022 aarch64 GNU/Linux
+```
 
 # opengles
 
