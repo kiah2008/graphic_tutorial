@@ -1,3 +1,6 @@
+# introduction
+foucus on opengles(mesa/gbm/drm), vulkan, opencv programming and samples.
+
 # pre-requirement
 base on **raspberrypi 4b with bullseye**
 ```
@@ -9,7 +12,7 @@ Release:        11
 Codename:       bullseye
 ```
 
-Arm arch **aarch64 **
+Arm arch **aarch64**
 ```
 uname -a
 Linux wethink 5.15.30-v8+ #1536 SMP PREEMPT Mon Mar 28 13:53:14 BST 2022 aarch64 GNU/Linux
