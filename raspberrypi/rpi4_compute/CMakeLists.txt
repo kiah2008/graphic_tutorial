@@ -1,4 +1,4 @@
-project(offscreen VERSION 0.1.0)
+project(rpi4_compute VERSION 0.01)
 
 find_package(PkgConfig REQUIRED)
 
@@ -8,13 +8,12 @@ pkg_check_modules(EGL REQUIRED egl)
 pkg_check_modules(GLES REQUIRED glesv2)
 pkg_check_modules(X11 REQUIRED x11)
 
-message(STATUS "=== ${DRM_INCLUDE_DIR}")
-
-add_executable(${PROJECT_NAME} triangle.c)
-
-message(STATUS "==== ${DRM_CFLAGS} ${GBM_CFLAGS} ${EGL_CFLAGS} ${GLES_CFLAGS}")
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g ${DRM_CFLAGS} ${GBM_CFLAGS} ${EGL_CFLAGS} ${GLES_CFLAGS}")
+
+
+add_executable(${PROJECT_NAME} 
+rpi4_compute.c
+)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

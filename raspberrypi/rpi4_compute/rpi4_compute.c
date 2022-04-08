@@ -1,5 +1,5 @@
-// #include <xf86drm.h>
-// #include <xf86drmMode.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
 #include <gbm.h>
 #include <EGL/egl.h>
 #include <GLES3/gl31.h>
@@ -85,7 +85,7 @@ static const EGLint contextAttribs[] = {
 #define STRINGIFY(x) #x
 
 static const char* computeShaderCode =
-"#version 310 es\n"
+"#version 300 es\n"
 "    // layout (std140, binding = 0) buffer inputBuffer {\n"
 "    //     float data[]\n"
 "    // } inBuffer;\n"
@@ -155,7 +155,7 @@ int main()
 {
 	EGLDisplay display;
 	// You can try chaning this to "card0" if "card1" does not work.
-	device = open("/dev/dri/card0", O_RDWR | O_CLOEXEC);
+	device = open("/dev/dri/card1", O_RDWR | O_CLOEXEC);
 	if (getDisplay(&display) != 0)
 	{
 		fprintf(stderr, "Unable to get EGL display\n");
@@ -210,7 +210,7 @@ int main()
 	}
 
 	EGLContext context =
-		eglCreateContext(display, configs[configIndex], EGL_NO_CONTEXT, contextAttribs);
+		eglCreateContext(display, configs[configIndex], EGL_NO_CONTEXT, /*contextAttribs*/ NULL);
 	if (context == EGL_NO_CONTEXT)
 	{
 		fprintf(stderr, "Failed to create EGL context! Error: %s\n",
