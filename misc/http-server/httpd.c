@@ -14,30 +14,30 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 
-
 #define CONNMAX 3
 #define MAX_RCV_SIZE 1024
+#define MAX_HEAD_SIZE 7
 
 static int listenfd, clients[CONNMAX];
 static void error(char *);
 static void startServer(const char *);
 static void respond(int);
 
-typedef struct {
-	char* cmd;
-	int duration;
-	int argc;
-	char* argv[0];
+typedef struct
+{
+    char *cmd;
+    int duration;
+    int argc;
+    char *argv[0];
 } cmd_t;
 
 typedef struct
 {
     char *name, *value;
 } header_t;
-static header_t reqhdr[17] = {{"\0", "\0"}};
+static header_t reqhdr[MAX_HEAD_SIZE] = {{"\0", "\0"}};
 
 static int clientfd;
-
 
 static char *buf;
 
@@ -80,9 +80,11 @@ void serve_forever(const char *PORT)
             {
                 respond(slot);
                 exit(0);
-            } else {
-                 waitpid(pid, NULL, 0);
-                 clients[slot] = -1;
+            }
+            else
+            {
+                waitpid(pid, NULL, 0);
+                clients[slot] = -1;
             }
         }
     }
@@ -159,6 +161,7 @@ void respond(int n)
     else // message received
     {
         buf[rcvd] = '\0';
+        printf("rcv content %s\n", buf);
         method = strtok(buf, " \t\r\n");
         uri = strtok(NULL, " \t");
         prot = strtok(NULL, " \t\r\n");
@@ -176,9 +179,9 @@ void respond(int n)
 
         header_t *h = reqhdr;
         char *t, *t2;
-        while (h < reqhdr + 16)
+        while (h < reqhdr + MAX_HEAD_SIZE)
         {
-            char *k, *v, *t;
+            char *k, *v;
             k = strtok(NULL, "\r\n: \t");
             if (!k)
                 break;
@@ -188,16 +191,21 @@ void respond(int n)
             h->name = k;
             h->value = v;
             h++;
-            fprintf(stderr, "[H] %s: %s\n", k, v);
+            printf("[H] %s: %s\n", k, v);
             t = v + 1 + strlen(v);
             if (t[1] == '\r' && t[2] == '\n')
                 break;
         }
-        t++;                                   // now the *t shall be the beginning of user payload
+        t+=3;                                   // now the *t shall be the beginning of user payload
         t2 = request_header("Content-Length"); // and the related header if there is
         payload = t;
         payload_size = t2 ? atol(t2) : (rcvd - (t - buf));
-
+        if (payload_size > 0) {
+            t[payload_size] = '\0';
+            h->name = "payload";
+            h->value = payload;
+        }
+        
         // bind clientfd to stdout, making it easier to write
         clientfd = clients[n];
         dup2(clientfd, STDOUT_FILENO);
@@ -207,8 +215,8 @@ void respond(int n)
         route();
 
         struct timeval tv;
-        gettimeofday(&tv,NULL);
-        printf("index: %d; ts:%.2f\r\n", n, tv.tv_sec + tv.tv_usec/1.0E6);
+        gettimeofday(&tv, NULL);
+        printf("index: %d; %s ts:%.2f\r\n", n, payload, tv.tv_sec + tv.tv_usec / 1.0E6);
         // tidy up
         fflush(stdout);
         shutdown(STDOUT_FILENO, SHUT_WR);
